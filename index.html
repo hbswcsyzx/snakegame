@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>贪吃蛇游戏</title>
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: #1a1a1a; /* 深灰黑色背景 */
+        font-family: "Microsoft YaHei", sans-serif;
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px;
+        color: white;
+      }
+
+      .game-container {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        margin: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      canvas {
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        background-color: rgba(255, 255, 255, 0.9);
+        display: block;
+      }
+
+      .controls {
+        margin: 20px 0;
+        display: flex;
+        align-items: center;
+        gap: 25px;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+      }
+
+      .ai-control {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 5px 15px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+      }
+
+      .ai-label {
+        font-size: 16px;
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+      }
+
+      button {
+        padding: 12px 25px;
+        font-size: 16px;
+        cursor: pointer;
+        border: none;
+        border-radius: 25px;
+        color: white;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      #restart {
+        background: linear-gradient(to bottom, #2ecc71, #27ae60);
+      }
+
+      #restart:hover {
+        background: linear-gradient(to bottom, #27ae60, #219a52);
+      }
+
+      #resetHighScore {
+        background: linear-gradient(to bottom, #e74c3c, #c0392b);
+      }
+
+      #resetHighScore:hover {
+        background: linear-gradient(to bottom, #c0392b, #a93226);
+      }
+
+      #score {
+        font-size: 28px;
+        margin: 20px;
+        white-space: pre-line;
+        text-align: center;
+        line-height: 1.6;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        background: rgba(0, 0, 0, 0.2);
+        padding: 15px 30px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      /* 开关样式优化 */
+      #startAI {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+        margin: 0;
+      }
+
+      .switch-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, #ccc, #999);
+        transition: 0.4s;
+        border-radius: 34px;
+        box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+      }
+
+      .switch-slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background: white;
+        transition: 0.4s;
+        border-radius: 50%;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      }
+
+      #aiToggle:checked + .switch-slider {
+        background: linear-gradient(to bottom, #2ecc71, #27ae60);
+      }
+
+      #aiToggle:checked + .switch-slider:before {
+        transform: translateX(26px);
+      }
+
+      /* 模态窗口样式优化 */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+        backdrop-filter: blur(5px);
+      }
+
+      .modal-content {
+        position: relative;
+        background: linear-gradient(135deg, #fff, #ecf0f1);
+        margin: 15% auto;
+        padding: 30px;
+        width: 340px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        animation: modalShow 0.5s ease;
+      }
+
+      @keyframes modalShow {
+        from {
+          transform: scale(0.8);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      .modal-content h2 {
+        margin-bottom: 25px;
+        color: #333;
+        font-size: 32px;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+      }
+
+      #finalScore {
+        font-size: 24px;
+        line-height: 1.6;
+        color: #444;
+        margin: 20px 0;
+      }
+
+      #modalRestart {
+        background: linear-gradient(45deg, #4caf50, #45a049);
+        margin-top: 25px;
+        padding: 15px 30px;
+      }
+
+      .celebration-text {
+        color: #ffd700;
+        font-size: 32px;
+        font-weight: bold;
+        margin: 15px 0;
+        animation: bounce 0.5s ease infinite alternate;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      @keyframes bounce {
+        from {
+          transform: translateY(0);
+        }
+        to {
+          transform: translateY(-10px);
+        }
+      }
+
+      /* 烟花动画优化 */
+      .fireworks-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 9999;
+      }
+
+      .firework {
+        position: absolute;
+        border-radius: 50%;
+        animation: explode 1.2s ease-out forwards;
+        box-shadow: 0 0 20px currentColor;
+      }
+
+      @keyframes explode {
+        0% {
+          transform: scale(0) rotate(0deg);
+          opacity: 1;
+        }
+        50% {
+          opacity: 1;
+          box-shadow: 0 0 40px currentColor;
+        }
+        100% {
+          transform: scale(3) rotate(360deg);
+          opacity: 0;
+        }
+      }
+
+      /* 添加确认对话框的样式 */
+      .modal-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 20px;
+      }
+
+      .danger-button {
+        background: linear-gradient(to bottom, #e74c3c, #c0392b) !important;
+      }
+
+      .danger-button:hover {
+        background: linear-gradient(to bottom, #c0392b, #a93226) !important;
+      }
+
+      #cancelReset {
+        background: linear-gradient(to bottom, #95a5a6, #7f8c8d);
+      }
+
+      #cancelReset:hover {
+        background: linear-gradient(to bottom, #7f8c8d, #6c7a7a);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="game-container">
+      <div id="score">分数: 0</div>
+      <canvas id="gameCanvas" width="400" height="400"></canvas>
+      <div class="controls">
+        <button id="restart">重新开始</button>
+        <button id="resetHighScore">重置最高分</button>
+        <div class="ai-control">
+          <span class="ai-label">托管</span>
+          <label id="startAI" class="switch">
+            <input type="checkbox" id="aiToggle" />
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div id="gameOverModal" class="modal">
+      <div class="modal-content">
+        <h2>游戏结束！</h2>
+        <p><span id="finalScore">0</span></p>
+        <button id="modalRestart">重新开始</button>
+      </div>
+    </div>
+
+    <!-- 添加重置确认对话框 -->
+    <div id="resetConfirmModal" class="modal">
+      <div class="modal-content">
+        <h2>确定要重置吗？</h2>
+        <p>这将清除您的历史最高分记录</p>
+        <div class="modal-buttons">
+          <button id="confirmReset" class="danger-button">确定重置</button>
+          <button id="cancelReset">取消</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="game.js"></script>
+  </body>
+</html>
