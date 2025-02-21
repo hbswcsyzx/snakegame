@@ -35,6 +35,15 @@
         box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
         background-color: rgba(255, 255, 255, 0.9);
         display: block;
+        touch-action: none; /* 禁用默认的触摸行为 */
+      }
+
+      /* 适应手机屏幕 */
+      @media (max-width: 600px) {
+        canvas {
+          width: 100%;
+          height: auto;
+        }
       }
 
       .controls {

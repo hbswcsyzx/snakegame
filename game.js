@@ -80,6 +80,9 @@ class SnakeGame {
 
         // 记录 AI 状态
         this.isAIActive = false;
+
+        // 绑定触摸事件
+        this.bindTouchControls();
     }
 
     reset() {
@@ -691,6 +694,38 @@ class SnakeGame {
 
         // 检查自身碰撞
         return this.snake.some(segment => segment.x === position.x && segment.y === position.y);
+    }
+
+    bindTouchControls() {
+        const touchArea = document.getElementById('gameCanvas');
+
+        touchArea.addEventListener('touchstart', (event) => {
+            const touch = event.touches[0];
+            this.handleTouch(touch.clientX, touch.clientY);
+        });
+
+        touchArea.addEventListener('touchmove', (event) => {
+            const touch = event.touches[0];
+            this.handleTouch(touch.clientX, touch.clientY);
+        });
+    }
+
+    handleTouch(x, y) {
+        const canvasRect = this.canvas.getBoundingClientRect();
+        const touchX = x - canvasRect.left;
+        const touchY = y - canvasRect.top;
+
+        // 计算触摸位置相对于蛇头的位置
+        const head = this.snake[0];
+        const directionX = touchX - (head.x * this.gridSize + this.gridSize / 2);
+        const directionY = touchY - (head.y * this.gridSize + this.gridSize / 2);
+
+        // 根据触摸位置更新方向
+        if (Math.abs(directionX) > Math.abs(directionY)) {
+            this.direction = directionX > 0 ? 'right' : 'left';
+        } else {
+            this.direction = directionY > 0 ? 'down' : 'up';
+        }
     }
 }
 
